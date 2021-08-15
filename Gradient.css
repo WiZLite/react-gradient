@@ -1,0 +1,16 @@
+
+    .gradient-container {
+        position: relative;
+        height: 30px;
+        border-radius: 4px;
+        margin: 20px;
+    }
+
+    .pin {
+        position: absolute;
+        border-radius: 50%;
+        width: 10px;
+        height: 10px;
+        background-color: lightgray;
+        z-index: 10;
+    }

@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@dpwolfe/react-color@1.3.4-1/lib/index.min.js"></script>
+        <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+        <script src="./Gradient.js" defer></script>
+        <link href="./Gradient.css" rel="stylesheet"/>
+        <!-- <script type="text/babel">
+            function InputColor(props) {
+                const [color,setColor] = React.useState(props.color);
+                
+                return <div><input style={{
+                    padding: 0
+                }} type="color" value={color} onChange={event => setColor(event.target.value)}/>{color}</div>
+
+            }
+
+            ReactDOM.render(<InputColor color="#ff0000"/>, document.querySelector("#root"));
+        </script> -->
+        <style>
+        </style>
+    </head>
+
+    <div id="root"></div>
+    <p>outside of react</p>
+</html>
