@@ -3,3 +3,4 @@ modules
 dist
 **/*.js
 *.tsbuildinfo
+lib
