@@ -4,17 +4,59 @@
         <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
         <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
-        <link rel="stylesheet" src="src/react-gradient.css" />
-        <script>
-            console.log(window.GradientEditor);
+        <link rel="stylesheet" href="src/index.css" />
+        <!-- <script type="module">
+            import * as GradientEditor from "./umd/react-gradient.js";
+            console.log(GradientEditor);
             // import * as GradientEditor from "./umd/react-gradient.js"
             // console.log(GradientEditor);
             // ReactDOM.render(React.createElement(GradientEditor, null, null), document.getElementById("root"))
+        </script> -->
+        <!-- <script src="lib/esm/index.js"></script> -->
+        <script type="module" defer>
+            import GradientEditor from "./lib/esm/index.js";
+            console.log(GradientEditor);
+
+            ReactDOM.render(React.createElement(GradientEditor,{
+                value: {
+                    colorKeys: [
+                        {
+                            color: "#ff0000",
+                            time: 0,
+                        },
+                        {
+                            color: "#00ff00",
+                            time: 0.5,
+                        },
+                        {
+                            color: "#0000ff",
+                            time: 1,
+                        },
+                    ],
+                    alphaKeys: [
+                        {
+                            alpha: 255,
+                            time: 0,
+                        },
+                        {
+                            alpha: 255,
+                            time: 0.5,
+                        },
+                        {
+                            alpha: 255,
+                            time: 1,
+                        },
+                    ],
+                    mode: 'blend',
+                },
+                onChange: gradient => {
+                    console.log(gradient);
+                }
+            }, null), document.getElementById("root"));
         </script>
         <style>
         </style>
     </head>
 
     <div id="root"></div>
-    <p>outside of react</p>
 </html>
