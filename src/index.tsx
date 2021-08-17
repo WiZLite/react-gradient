@@ -41,8 +41,6 @@ function hexToRGB(p_hex: string) {
   };
 }
 
-console.log("lerpColor.", lerpColor("#ff0000", "#00ff00",0.5));
-
 type RGBA = {
   r: number,
   g: number,
@@ -92,17 +90,6 @@ function getBlendGradientCSS(p_colorKeys: ColorKey[], p_alphaKeys: AlphaKey[]): 
     const rightColorKey = colorKeys.length > leftColorKeyCount ? colorKeys[leftColorKeyCount] : colorKeys.length > 0 ? colorKeys[colorKeys.length - 1] : {color: "#ffffff", time: 1};
     const t = (alphaKey.time - leftColorKey.time) / (rightColorKey.time - leftColorKey.time);
     const lerpedColor = leftColorKey.time !== rightColorKey.time ? lerpColor(leftColorKey.color, rightColorKey.color, t) : leftColorKey.color;
-    
-    if(0.25 < alphaKey.time && alphaKey.time < 0.75)  {
-      console.log(leftColorKeyCount);
-      console.log("leftColorKey: ", leftColorKey);
-      console.log("rightColorKey: ", rightColorKey);
-      console.log("t", t);
-      console.log("lerpedColor: " , lerpedColor);
-      console.log("lerpedColorHex: ", hexToRGB(lerpedColor));
-    }
-    // console.log("leftColorKey:" , leftColorKey,"rightColorKey:", rightColorKey);
-    // console.log("alphaKey:", alphaKey, "lerpedColor: ", [{...hexToRGB(lerpedColor), a: alphaKey.alpha},alphaKey.time])
     points.push([{...hexToRGB(lerpedColor), a: alphaKey.alpha},alphaKey.time]);
   }
 
@@ -165,8 +152,6 @@ export default function GradientEditor({
       alphaKeys,
       mode: value.mode,
     });
-
-    console.log(getStyle());
   };
 
   React.useEffect(() => {
