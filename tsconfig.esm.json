@@ -2,6 +2,7 @@
     "extends": "./tsconfig.base",
     "compilerOptions": {
       "module": "esnext",
-      "outDir": "lib/esm"
+      // "outDir": "lib/esm"
+      "outDir": "C:\\Users\\S13127\\source\\Cysharp\\CloudProfiler4\\src\\CloudProfiler.Web\\wwwroot\\libs\\gradient-editor"
     }
 }

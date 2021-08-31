@@ -6,8 +6,7 @@
   "browser": "lib/umd/index.umd.js",
   "module": "lib/esm/index.es.js",
   "scripts": {
-    "build": "esbuild src/react-gradient.tsx  --bundle --format=esm --global-name=ReactGradient --external:react --outfile=dist/index.js",
-    "build-dev": "webpack --mode development"
+    "build": "esbuild src/react-gradient.tsx  --bundle --format=esm --global-name=ReactGradient --external:react --outfile=dist/index.js"
   },
   "repository": {
     "type": "git",

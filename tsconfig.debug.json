@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.base",
+    "compilerOptions": {
+      "module": "esnext",
+      // "outDir": "lib/esm"
+      "outDir": "./lib/esm"
+    }
+}

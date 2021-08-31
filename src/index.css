@@ -1,11 +1,54 @@
-.gradient-container {
+.RG_gradient-container {
     position: relative;
-    height: 30px;
-    border-radius: 4px;
-    margin: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 6px;
 }
 
-.pin {
+    .RG_gradient-container:drag-over {
+        cursor: progress;
+    }
+
+.RG_gradient-bar {
+    position: absolute;
+    box-sizing: border-box;
+    border-radius: 4px;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.RG_gradient-background {
+    position: absolute;
+    border-radius: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    top: 0;
+    left: 0;
+}
+
+    .RG_gradient-background::after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),linear-gradient(-45deg, #ccc 25%, transparent 25%),linear-gradient(45deg, transparent 75%, #ccc 75%),linear-gradient(-45deg, transparent 75%, #ccc 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        content: "";
+    }
+
+.RG_gradient-container:focus-within .RG_pin {
+    display: inline-block;
+}
+
+.RG_pin {
+    display: none;
     position: absolute;
     border-radius: 50%;
     width: 10px;
@@ -13,4 +56,13 @@
     background-color: lightgray;
     z-index: 10;
     border: 1px solid #aaa;
+    cursor: pointer;
 }
+
+    .RG_pin:active {
+        cursor: move
+    }
+
+    .RG_pin[data-del="true"] {
+        visibility: hidden;
+    }

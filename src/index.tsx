@@ -1,7 +1,3 @@
-/// <reference path="../node_modules/@types/react/index.d.ts"/>
-
-import { useEffect, useState } from "react";
-
 const React = window.React;
 
 function calcRelativeXPositionRate(clientX: number, element: HTMLElement) {
@@ -10,7 +6,7 @@ function calcRelativeXPositionRate(clientX: number, element: HTMLElement) {
 function calcRelativeYPositionRate(clientY: number, element: HTMLElement) {
   return (clientY - element.getBoundingClientRect().top) / element.clientHeight;
 }
-function lerpColor(_a: string, _b: string, amount): string {
+function lerpColor(_a: string, _b: string, amount: number): string {
   const a = parseInt(_a.slice(1,7),16);
   const b = parseInt(_b.slice(1,7),16);
   const ar = a >> 16,
@@ -135,16 +131,17 @@ type InputGradientProps = {
   onChange: (value: Gradient) => void;
 };
 
+let incrementId: number = 0;
+
 export default function GradientEditor({
   value,
   onChange,
 }: InputGradientProps) {
-  const [colorKeys, setColorKeys] = React.useState<ColorKey[]>(value.colorKeys);
-  const [alphaKeys, setAlphaKeys] = React.useState<AlphaKey[]>(value.alphaKeys);
+  const [colorKeys, setColorKeys] = React.useState<(ColorKey & {id: number})[]>(value.colorKeys.map(x => {return {...x, id: incrementId++}}));
+  const [alphaKeys, setAlphaKeys] = React.useState<(AlphaKey & {id: number})[]>(value.alphaKeys.map(x => {return {...x, id: incrementId++}}));
   const [mode, setMode] = React.useState<"blend" | "fixed">(value.mode);
-  const [selectedPinInfo, setSelectedPinInfo] = React.useState<
-    null | [index: number, isAlpha: boolean]
-  >(null);
+  const [selectedPinId, setSelectedPinId] = React.useState<number | null>(null);
+  const [showMenu, setShowMenu] = React.useState(false);
 
   const notifyValueChanged = () => {
     onChange({
@@ -156,7 +153,8 @@ export default function GradientEditor({
 
   React.useEffect(() => {
     window.addEventListener("click", (e) => {
-      setSelectedPinInfo(null);
+      setSelectedPinId(null);
+      setShowMenu(false);
     });
   }, []);
 
@@ -182,164 +180,175 @@ export default function GradientEditor({
       setAlphaKeys((keys) => [
         ...keys,
         {
-          alpha: 1,
+          id: incrementId++,
+          alpha: 255,
           time: xpos,
         },
       ]);
     } else {
-      setColorKeys((keys) => [...keys, { color: "#ffffff", time: xpos }]);
+      setColorKeys((keys) => [...keys, { id: incrementId++, color: "#ffffff", time: xpos }]);
     }
     notifyValueChanged();
   };
 
-  const getSelectedKey = (): ColorKey | AlphaKey | undefined => {
-    if (selectedPinInfo) {
-      const [index, isAlpha] = selectedPinInfo;
-      if (isAlpha) {
-        return alphaKeys[index];
-      } else {
-        return colorKeys[index];
-      }
+  const getSelectedKey = (): ColorKey & {id: number} | AlphaKey & {id:number} | undefined => {
+    if (selectedPinId || selectedPinId === 0) {
+      let ret = colorKeys.find(x => x.id === selectedPinId);
+      if(ret) return ret;
+      return alphaKeys.find(x => x.id === selectedPinId);
     }
     return undefined;
   };
-  return (
-    <div
-      className="gradient-container"
-      style={getStyle()}
-      onDoubleClick={(event) => {
-        handleDoubleClick(event);
-      }}
-    >
-      {alphaKeys.map((key, index) => (
-        <Pin
-          position={key.time}
-          isColorPin={false}
-          key={"a-" + index}
-          onPositionUpdate={(pos) => {
-            setAlphaKeys((keys) => {
-              keys[index] = {
-                ...keys[index],
-                time: pos,
-              };
-              return [...keys];
-            });
-          }}
-          onPositionChange={(_) => {
-            notifyValueChanged();
-          }}
-          onClick={() => {
-            setSelectedPinInfo([index, true]);
-          }}
-          onDelete={() => {
-            setAlphaKeys((keys) => {
-              keys.splice(index, 1);
-              return { ...keys };
-            });
-          }}
-          color={`rgba(255,255,255,${key.alpha / 255})`}
-        />
-      ))}
-      {colorKeys.map((key, index) => (
-        <Pin
-          position={key.time}
-          isColorPin={true}
-          key={"c-" + index}
-          onPositionChange={(_) => {
-            notifyValueChanged();
-          }}
-          onPositionUpdate={(pos) => {
-            setColorKeys((keys) => {
-              keys[index] = {
-                ...keys[index],
-                time: pos,
-              };
-              return [...keys];
-            });
-          }}
-          onClick={() => {
-            setSelectedPinInfo([index, false]);
-          }}
-          onDelete={() => {
-            setColorKeys((keys) => {
-              keys.splice(index, 1);
-              return { ...keys };
-            });
-          }}
-          color={key.color}
-        />
-      ))}
-      <input
-        type="color"
-        style={{
-          visibility: isColorKey(getSelectedKey()) ? "visible" : "hidden",
-          position: "absolute",
-          left: `calc(${(getSelectedKey()?.time ?? 0) * 100}% - 21px)`,
-          bottom: -30,
-        }}
-        value={(() => {
-          var selectedKey = getSelectedKey();
-          if (isColorKey(selectedKey)) {
-            return selectedKey.color;
-          } else {
-            return "#000000";
-          }
-        })()}
-        onClick={(event) => event.stopPropagation()}
-        onChange={(event) => {
-          if (selectedPinInfo) {
-            const [index, isAlpha] = selectedPinInfo;
-            if (!isAlpha) {
-              const keyToChange = colorKeys[index];
-              keyToChange.color = event.target.value;
 
-              setColorKeys((keys) => {
-                keys[index] = keyToChange;
-                return keys.concat();
-              });
-            }
-          }
+  return (
+    <div className="RG_gradient-container"
+      onDragOver={e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      }}
+      tabIndex={0}
+    >
+      <div className="RG_gradient-background"></div>
+      <div
+        className="RG_gradient-bar"
+        style={getStyle()}
+        onDoubleClick={(event) => {
+          handleDoubleClick(event);
         }}
-        onBlur={(_) => notifyValueChanged()}
-      />
-      <input
-        type="range"
-        min={0}
-        max={255}
-        step={1}
-        style={{
-          visibility: isAlphaKey(getSelectedKey()) ? "visible" : "hidden",
-          position: "absolute",
-          left: `calc(${(getSelectedKey()?.time ?? 0) * 100}% - 50px)`,
-          top: -20,
-          width: 100,
-        }}
-        value={(() => {
-          var selectedKey = getSelectedKey();
-          if (isAlphaKey(selectedKey)) {
-            return selectedKey.alpha;
-          } else {
-            return 0;
-          }
-        })()}
-        onClick={(event) => event.stopPropagation()}
-        onChange={(event) => {
-          if (selectedPinInfo) {
-            const [index, isAlpha] = selectedPinInfo;
-            if (isAlpha) {
-              const keyToChange = alphaKeys[index];
-              keyToChange.alpha = Math.floor(event.target.valueAsNumber);
+      >
+        {alphaKeys.map((key, index) => (
+          <Pin
+            position={key.time}
+            isColorPin={false}
+            isSelected={key.id === selectedPinId}
+            key={key.id}
+            onPositionUpdate={(pos) => {
               setAlphaKeys((keys) => {
-                keys[index] = keyToChange;
+                keys[index] = {
+                  ...keys[index],
+                  time: pos,
+                };
+                return [...keys];
+              });
+            }}
+            onPositionChange={(_) => {
+              notifyValueChanged();
+            }}
+            onClick={() => {
+              setSelectedPinId(key.id);
+            }}
+            onDelete={() => {
+              setAlphaKeys((keys) => {
+                keys.splice(index, 1);
+                return [...keys ];
+              });
+            }}
+            color={`rgba(255,255,255,${key.alpha / 255})`}
+          />
+        ))}
+        {colorKeys.map((key, index) => (
+          <Pin
+            position={key.time}
+            isColorPin={true}
+            isSelected={key.id === selectedPinId}
+            key={key.id}
+            onPositionChange={(_) => {
+              notifyValueChanged();
+            }}
+            onPositionUpdate={(pos) => {
+              setColorKeys((keys) => {
+                keys[index] = {
+                  ...keys[index],
+                  time: pos,
+                };
+                return [...keys];
+              });
+            }}
+            onClick={() => {
+              setSelectedPinId(key.id);
+            }}
+            onDelete={() => {
+              setColorKeys((keys) => {
+                keys.splice(index, 1);
+                return [...keys ];
+              });
+            }}
+            color={key.color}
+          />
+        ))}
+        <input
+          type="color"
+          style={{
+            visibility: isColorKey(getSelectedKey()) ? "visible" : "hidden",
+            position: "absolute",
+            left: `calc(${(getSelectedKey()?.time ?? 0) * 100}% - 21px)`,
+            bottom: -30,
+            zIndex: 100,
+          }}
+          value={(() => {
+            var selectedKey = getSelectedKey();
+            if (isColorKey(selectedKey)) {
+              return selectedKey.color;
+            } else {
+              return "#000000";
+            }
+          })()}
+          onClick={(event) => event.stopPropagation()}
+          onChange={(event) => {
+            if (selectedPinId || selectedPinId === 0) {
+              // const [index, isAlpha] = selectedPinInfo;
+              const selectedKey = getSelectedKey();
+              if (isColorKey(selectedKey)) {
+                const keyToChange = selectedKey;
+                keyToChange.color = event.target.value;
+                const index = colorKeys.findIndex(x => x.id === selectedPinId);
+                setColorKeys((keys) => {
+                  keys[index] = keyToChange;
+                  return keys.concat();
+                });
+              }
+            }
+          }}
+          onBlur={(_) => notifyValueChanged()}
+        />
+        <input
+          type="range"
+          min={0}
+          max={255}
+          step={1}
+          style={{
+            visibility: isAlphaKey(getSelectedKey()) ? "visible" : "hidden",
+            position: "absolute",
+            left: `calc(${(getSelectedKey()?.time ?? 0) * 100}% - 50px)`,
+            top: -20,
+            width: 100,
+            zIndex: 100,
+          }}
+          value={(() => {
+            var selectedKey = getSelectedKey();
+            if (isAlphaKey(selectedKey)) {
+              return selectedKey.alpha;
+            } else {
+              return 0;
+            }
+          })()}
+          onClick={(event) => event.stopPropagation()}
+          onChange={(event) => {
+            const selectedKey = getSelectedKey();
+            if (isAlphaKey(selectedKey)) {
+              const index = alphaKeys.findIndex(x => x.id === selectedPinId);
+              selectedKey.alpha = Math.floor(event.target.valueAsNumber);
+              setAlphaKeys((keys) => {
+                keys[index] = selectedKey;
                 return [...keys];
               });
             }
-          }
-        }}
-        onBlur={(_) => notifyValueChanged()}
-      />
-    </div>
-  );
+          }}
+          onBlur={(_) => notifyValueChanged()}
+        />
+      </div>
+    
+    </div>);
 }
 
 type PinProps = {
@@ -350,12 +359,15 @@ type PinProps = {
   onDelete: () => void;
   isColorPin: boolean;
   color?: string;
+  isSelected: boolean;
 };
 
 function Pin(props: PinProps) {
   const [position, setPosition] = React.useState(props.position);
 
   const [isAboutToDeleted, SetIsAboutToDeleted] = React.useState(false);
+
+  const [isDragging, setIsDragging] = React.useState(false);
 
   const handleDrag = function (event: React.DragEvent) {
     const thisElm = event.target! as HTMLElement;
@@ -373,11 +385,12 @@ function Pin(props: PinProps) {
       SetIsAboutToDeleted(false);
     }
 
+    //なぜか最初にブラウザからおかしな値が来たりするので、しきい値を設ける。
     if (thisElm.offsetLeft - event.clientX > 20) {
       return;
     }
-    const rawPosition =
-      (event.clientX - parent.offsetLeft) / parent.offsetWidth;
+
+    const rawPosition = (event.clientX - parentRect.left /* 決め打ち調整 */) / parentRect.width;
 
     if (rawPosition < 0) {
       return;
@@ -388,13 +401,30 @@ function Pin(props: PinProps) {
     props.onPositionUpdate(clampedPosition);
   };
 
+
   const handleClick = function (event: React.MouseEvent) {
     event.stopPropagation();
     props.onClick(event);
   };
 
+  const handleDragStart = (event: React.DragEvent) => {
+    // x軸に従って動くので、ゴーストは消しておく
+    event.dataTransfer.setDragImage(new Image(),0,0,);
+    event.dataTransfer.dropEffect = "move";
+    setIsDragging(true);
+  }
+
   const handleDragEnd = function (event: React.DragEvent) {
-    if (isAboutToDeleted) {
+    setIsDragging(false);
+
+    const thisElm = event.target! as HTMLElement;
+    const parent = thisElm.parentNode! as HTMLElement;
+    const parentRect = parent.getBoundingClientRect();
+    
+    const _isAboutToDeleted = (!props.isColorPin && parentRect.top - event.clientY > 15 || parentRect.bottom - event.clientY < -15);
+
+    if (_isAboutToDeleted) {
+      console.log("delete");
       if (props.onDelete) {
         props.onDelete();
         return;
@@ -407,9 +437,8 @@ function Pin(props: PinProps) {
   const createStyle = () => {
     const common = {
       left: `calc(${position * 100}% - 5px)`,
-      cursor: `${isAboutToDeleted ? "not-allowed" : "grab"}`,
       backgroundColor: props.color ?? "lightgray",
-    };
+    } as React.CSSProperties;
 
     return props.isColorPin
       ? { ...common, bottom: -5 }
@@ -418,10 +447,12 @@ function Pin(props: PinProps) {
 
   return (
     <span
-      className="pin"
+      data-del={isAboutToDeleted}
+      className="RG_pin"
       draggable
       style={createStyle()}
       onClick={handleClick}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDrag={handleDrag}
     />
